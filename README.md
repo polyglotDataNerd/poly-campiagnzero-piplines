@@ -6,13 +6,13 @@ This Github repo houses a collection package of ETL/ELT pipeline functions to en
 Summary
 - 
 
-[Campaign Zero](https://www.joincampaignzero.org/) is a non-profit organization that is informed by data, research and human rights principles to drive in policy specifically the way police serve our communities.  While this is a high-level synopsis of what there mission statement is, please click on the link above to get full context of the great work they are doing. 
+[Campaign Zero](https://www.joincampaignzero.org/) is a non-profit organization that is informed by data, research and human rights principles to drive policy specifically the way police serve our communities.  While this is a high-level synopsis of what there mission statement is, please click on the link above to get full context of the great work they are doing. 
 
 **Requirements and Dependencies**
 
 A list of requirements to successfully run these pipelines. 
   
-1. Domain and Infrastructure: These pipelines are specifically written for the AWS Cloud Domain. The main collection data store where all the raw disparate data sources will live will be in [AWS S3](https://aws.amazon.com/products/storage/data-lake-storage/).
+1. Domain and Infrastructure: These pipelines are specifically written for the AWS Cloud Domain. The main collection data store where all the raw disparate data sources will live in [AWS S3](https://aws.amazon.com/products/storage/data-lake-storage/).
 
 2. Application Dependencies:
     * [AWS S3](https://aws.amazon.com/s3/): The data store
