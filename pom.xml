@@ -123,7 +123,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.6.7</version>
+            <version>2.9.10.5</version>
         </dependency>
         <!--Needed: since this is the databind that Spark uses to run local jobs and read s3a-->
         <!-- To read s3A locally these are the dependencies -->
