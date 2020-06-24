@@ -18,6 +18,7 @@ A list of requirements to successfully run these pipelines.
     * [AWS S3](https://aws.amazon.com/s3/): The data store
     * [Apache Spark 2.4.5](https://spark.apache.org/): The processing framework
     * [Scala 2.11](https://www.scala-lang.org/download/2.11.10.html): The language used to write the pipelines
+    * [AMW EMR](https://aws.amazon.com/emr/): Managed Big Data Service
 
 3. Build Tool: This projects uses maven as the build tool, you need to install a local repo on your machine in order
                to generate dependant libraries within the pom.xml file to be able to compile the project. 
