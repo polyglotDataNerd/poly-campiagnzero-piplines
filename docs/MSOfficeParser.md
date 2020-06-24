@@ -19,11 +19,11 @@ In this particular use case the example was the site [Mapping Police Data](https
 
 **Details**
 
-This package relies on utility function that requests data from an API and puts into a directory in AWS s3. 
+This package relies on a utility function that requests data from an API and puts into a directory in AWS s3. 
 
 [**Spark Utility Class**](../src/main/scala/com/sg/transformers/utility/SparkUtils.scala): This class holds helper functions that is used all over the package.
 
- [Get API Function](../src/main/scala/com/sg/transformers/utility/SparkUtils.scala#L145): This function will call an HTTP GET request and collect the data into AWS s3.
+ - [Get API Function](../src/main/scala/com/sg/transformers/utility/SparkUtils.scala#L145): This function will call an HTTP GET request and collect the data into AWS s3.
  
  **Application Arguments**
  

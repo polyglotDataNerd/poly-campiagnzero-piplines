@@ -1,6 +1,6 @@
 # PDF to Text Parser
 
-The parser has been specifically created to take PDF files and optical character recognition to convert to flat text files. 
+The parser has been specifically created to take PDF files and use optical character recognition to convert to flat text files. 
 
 **Application Arguments**
 

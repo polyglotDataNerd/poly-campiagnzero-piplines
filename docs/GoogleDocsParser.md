@@ -1,6 +1,6 @@
 # Google Docs Parser
 
-The parser has been specifically created to act with google docs specifically google Sheets.
+The parser has been specifically created to interact with google docs specifically google Sheets.
 
 **Application Arguments**
 
@@ -22,7 +22,7 @@ In this particular use case the example was [Nationwide Police Data](https://doc
 The API's to interact with google docs use the core GCP framework. In order to run the automated pipeline the owner would need: 
 
  - Register for Google Service Account: https://cloud.google.com/compute/docs/access/service-accounts
- - Credentials, since the interaction uses private credentials to interact, the owner would need to generate credentials once the service account has been created: https://cloud.google.com/iam/docs/service-accounts#application_default_credentials
+ - Credentials, the pipeline interaction uses private credentials to interact, the owner would need to generate credentials once the service account has been created: https://cloud.google.com/iam/docs/service-accounts#application_default_credentials
  - Once the service account and credentials have been established they would need to live in secured private bucket in AWS s3 since the application will temporally import those credentials to authenticate the collection. 
   
 **[Package Location](../src/main/scala/com/sg/transformers/ocr)**
