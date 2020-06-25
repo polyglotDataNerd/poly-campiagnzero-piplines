@@ -1,10 +1,20 @@
 package com.sg.transformers.utility
 
+import java.io.{InputStream, InputStreamReader}
+import java.util.Collections
+
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder
 import com.amazonaws.services.simplesystemsmanagement.model.{GetParametersRequest, GetParametersResult}
-import com.google.auth.oauth2.GoogleCredentials
+import com.google.api.client.auth.oauth2.Credential
+import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp
+import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver
+import com.google.api.client.googleapis.auth.oauth2._
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
+import com.google.api.client.json.jackson2.JacksonFactory
+import com.google.api.client.util.store.FileDataStoreFactory
+import com.google.api.services.sheets.v4.SheetsScopes
 import com.sg.utils.Util
 import org.apache.commons.io.IOUtils
 import org.apache.http.client.methods.HttpGet
@@ -12,7 +22,7 @@ import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.{DataFrame, SaveMode}
+import org.apache.spark.sql.{DataFrame, SaveMode};
 
 class SparkUtils(sc: SparkContext, stringBuilder: java.lang.StringBuffer) extends java.io.Serializable {
   private val format = new java.text.SimpleDateFormat("yyyy-MM-dd")
@@ -128,9 +138,23 @@ class SparkUtils(sc: SparkContext, stringBuilder: java.lang.StringBuffer) extend
     formatter.format(value)
   }
 
-  def googleAuth(bucket: String, credKeyPath: String): GoogleCredentials = {
-    GoogleCredentials.fromStream(new Util().getS3Obj(bucket, credKeyPath))
+  def googleAuth(bucket: String, credKeyPath: String): Credential = {
+    /* https://developers.google.com/sheets/api/quickstart/java */
+    val in: InputStream = new Util().getS3Obj(bucket, credKeyPath)
+    val JSON_FACTORY = JacksonFactory.getDefaultInstance
+    val HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport
+    val SCOPES: java.util.List[String] = Collections.singletonList(SheetsScopes.SPREADSHEETS_READONLY);
+    /* https://stackoverflow.com/questions/25900906/gmailapiquickstart */
+    val gcs: GoogleClientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in))
+    val flow: GoogleAuthorizationCodeFlow = new GoogleAuthorizationCodeFlow.Builder(
+      HTTP_TRANSPORT, JSON_FACTORY, gcs, SCOPES)
+      .setDataStoreFactory(new FileDataStoreFactory(new java.io.File("tokens")))
+      .setAccessType("offline")
+      .build()
+    val receiver: LocalServerReceiver = new LocalServerReceiver.Builder().setPort(8888).build()
+    new AuthorizationCodeInstalledApp(flow, receiver).authorize(null)
   }
+
 
 
   def diffCols(myCols: Set[String], allCols: Set[String]) = {

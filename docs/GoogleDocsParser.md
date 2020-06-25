@@ -6,7 +6,7 @@ The parser has been specifically created to interact with google docs specifical
 
 | Argument        | Sample           | Required  |
 | ------------- |:-------------:| -----:|
-| Unique Sheet ID | The unique ID of the google sheet i.e. 11Ie6hCP9fw6d0T3XzzGwNxYjeM4z1Z36_Q8T2pToJH8/Sheet1 | Yes  |
+| Unique Sheet ID | The unique ID of the google sheet i.e. 11Ie6hCP9fw6d0T3XzzGwNxYjeM4z1Z36_Q8T2pToJH8 | Yes  |
 | Outpath | landing s3 directory of data i.e. s3://campaign-zero/cde/| Yes  |
 
 
@@ -23,6 +23,7 @@ The API's to interact with google docs use the core GCP framework. In order to r
 
  - Register for Google Service Account: https://cloud.google.com/compute/docs/access/service-accounts
  - Credentials, the pipeline interaction uses private credentials to interact, the owner would need to generate credentials once the service account has been created: https://cloud.google.com/iam/docs/service-accounts#application_default_credentials
+   * [OAuth Credentials](https://support.google.com/cloud/answer/6158849?hl=en): Specific credentials to be able to interact with Google APU V4
  - Once the service account and credentials have been established they would need to live in secured private bucket in AWS s3 since the application will temporally import those credentials to authenticate the collection. 
   
 **[Package Location](../src/main/scala/com/sg/transformers/ocr)**
