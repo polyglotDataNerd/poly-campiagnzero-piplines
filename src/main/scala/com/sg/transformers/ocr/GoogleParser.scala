@@ -40,7 +40,7 @@ class GoogleParser extends java.io.Serializable {
       ) {
         val df = sqlContext
           .read
-          .option("serviceAccountId", "development@development-281015.iam.gserviceaccount.com")
+          .option("serviceAccountId", "")
           .option("credentialPath", tmpP12.getAbsolutePath)
           .option("header", "false")
           .option("multiline", "true")
