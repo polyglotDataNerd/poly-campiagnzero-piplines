@@ -155,7 +155,11 @@ class SparkUtils(sc: SparkContext, stringBuilder: java.lang.StringBuffer) extend
     new AuthorizationCodeInstalledApp(flow, receiver).authorize(null)
   }
 
-
+  def googleService(bucket: String, credKeyPath: String): GoogleCredential = {
+    GoogleCredential
+      .fromStream(new Util().getS3Obj(bucket, credKeyPath))
+      .createScoped(Collections.singletonList(SheetsScopes.SPREADSHEETS_READONLY))
+  }
 
   def diffCols(myCols: Set[String], allCols: Set[String]) = {
     allCols.toList.map(x => x

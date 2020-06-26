@@ -20,7 +20,7 @@ class GoogleParser extends java.io.Serializable {
 
   def sheetsParse(sqlContext: SQLContext, sparkContext: SparkContext, sheetPath: String, outPutPath: String, logstring: StringBuffer): Unit = {
     val sparkUtils: SparkUtils = new SparkUtils(sparkContext, logstring)
-    val credential = sparkUtils.googleAuth("bigdata-utility", "google/oauth.json")
+    val credential = sparkUtils.googleService("bigdata-utility", "google/serviceCredentials.json")
 
     /* temp copies P12 credential file from s3 */
     val tmpP12: File = File.createTempFile("p12", ".tmp")
