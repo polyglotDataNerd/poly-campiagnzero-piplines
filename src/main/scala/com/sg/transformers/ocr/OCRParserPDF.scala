@@ -4,26 +4,25 @@ import java.io._
 
 import com.sg.transformers.utility.SparkUtils
 import com.sg.utils.ConfigProps
+import org.apache.pdfbox.io.RandomAccessBuffer
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.text.PDFTextStripper
 import org.apache.spark.SparkContext
 import org.apache.spark.input.PortableDataStream
-import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.storage.StorageLevel
 import org.apache.tika.exception.TikaException
 import org.apache.tika.metadata.Metadata
 import org.apache.tika.parser.ParseContext
-import org.apache.tika.parser.pdf.PDFParser
 import org.apache.tika.sax.BodyContentHandler
 
 
 class OCRParserPDF extends java.io.Serializable {
 
   val config: ConfigProps = new ConfigProps()
-  private val format = new java.text.SimpleDateFormat("yyyy-MM-dd")
 
-
-  def parser(input: (String, PortableDataStream)): String = {
-    val OCRparser: PDFParser = new PDFParser()
+  def parserStrip(input: (String, PortableDataStream)): String = {
+    val OCRparser: org.apache.tika.parser.pdf.PDFParser = new org.apache.tika.parser.pdf.PDFParser()
     val stream: InputStream = input._2.open()
     val stringWrite: StringWriter = new StringWriter()
     val handler: BodyContentHandler = new BodyContentHandler(stringWrite)
@@ -45,23 +44,22 @@ class OCRParserPDF extends java.io.Serializable {
       .toString()
   }
 
-  def pdfWordCount(sc: SparkContext): RDD[((String, String), Int)] = {
-    val files =
-      sc.binaryFiles(config.getPropValues("s3sourcePath"), Runtime.getRuntime.availableProcessors).persist(StorageLevel.MEMORY_ONLY_2)
-        .flatMap {
-          x =>
-            val fileName = x._1.split("/").last.toLowerCase()
-            parser(fileName, x._2)
-              .split(" ")
-              .map(_.replace("\n", " "))
-              .flatMap(_.split(" ").map(_.replace("\n", "")))
-              .map(x => (x, fileName))
-
-        }
-    val pdfRDD = files.map(x => ((x._1, x._2), 1))
-    pdfRDD
-      .reduceByKey((accumulator, combiner) => accumulator + combiner)
-      .sortBy(_._2, false)
+  def parserWithFormat(input: (String, PortableDataStream)): String = {
+    val stream: InputStream = input._2.open()
+    val OCRparser: org.apache.pdfbox.pdfparser.PDFParser = new org.apache.pdfbox.pdfparser.PDFParser(new RandomAccessBuffer(stream))
+    OCRparser.parse()
+    val stringWrite: PDDocument = new PDDocument(OCRparser.getDocument())
+    //val stripper: PDFTextStripper = new PDFLayoutTextStripper()
+    val stripper: PDFTextStripper = new PDFTextStripper()
+    stripper.setSortByPosition(true)
+    val pdf = new StringBuffer()
+    val t = stripper.getText(stringWrite).split("\n")
+    t.foreach(x => {
+      pdf.append(x.trim()).append("\n")
+    })
+    stringWrite.close()
+    stream.close()
+    pdf.toString()
   }
 
   def pdfDFText(sql: SQLContext, sc: SparkContext, pdfPath: String, outPath: String): Unit = {
@@ -73,7 +71,8 @@ class OCRParserPDF extends java.io.Serializable {
         val fileName = x._1.split("/").last.toLowerCase()
         (
           fileName,
-          parser(fileName, x._2).replaceAll("(\r\n|\n\r|\r|\n)", " ").toLowerCase)
+          //parserStrip(fileName, x._2).replaceAll("(\r\n|\n\r|\r|\n)", " ").toLowerCase)
+          parserWithFormat(fileName, x._2).toLowerCase)
       }
     pdfRDD
       .toDF("filename", "pdftext")

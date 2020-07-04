@@ -2,6 +2,7 @@ package com.sg.transformers.utility
 
 import java.io.{InputStream, InputStreamReader}
 import java.util.Collections
+import java.util.UUID.randomUUID
 
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
 import com.amazonaws.regions.Regions
@@ -22,7 +23,11 @@ import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.{DataFrame, SaveMode};
+import org.apache.spark.sql.{DataFrame, SaveMode}
+import org.jsoup.Jsoup
+import org.jsoup.nodes.{Document, Element}
+import scala.collection.JavaConverters._
+import scala.collection.mutable;
 
 class SparkUtils(sc: SparkContext, stringBuilder: java.lang.StringBuffer) extends java.io.Serializable {
   private val format = new java.text.SimpleDateFormat("yyyy-MM-dd")
@@ -170,26 +175,51 @@ class SparkUtils(sc: SparkContext, stringBuilder: java.lang.StringBuffer) extend
     )
   }
 
+
   def getAPIContent(outputBucket: String, outPutKey: String, url: String): Unit = {
-    var filename: String = new String
     val httpClient = HttpClientBuilder.create.build
     val get = new HttpGet(url)
     val response = httpClient.execute(get)
 
+    /* text/csv type */
     if (response.containsHeader("Content-Disposition")) {
+      var filename: String = new String
       response.getLastHeader("Content-Disposition").getElements.foreach(x => {
         filename = x.getParameterByName("filename").getValue
+        val is = response.getEntity.getContent
+        utils.putS3Obj(outputBucket, outPutKey + "/" + date + "/" + filename, is)
+        if (response.getEntity.getContent != null) response.getEntity.getContent.close
+        is.close()
+        httpClient.close()
       })
     }
-    else {
-      filename = url.split("/").last.toLowerCase()
+
+    /* html type */
+    else if (response.getEntity.getContentType.getValue.contains("text/html")) {
+      val sb: StringBuffer = new StringBuffer()
+      val quoteIdent = "\""
+      val is = response.getEntity.getContent
+      val htmlDoc: Document = Jsoup.parseBodyFragment(IOUtils.toString(response.getEntity.getContent, "UTF-8"))
+      val rows: mutable.Buffer[Element] = htmlDoc.getElementsByTag("tr").asScala
+
+      rows.foreach(r => {
+        val cells: mutable.Buffer[Element] = r.getElementsByTag("td").asScala
+        cells.foreach(c => {
+          sb.append(quoteIdent).append(c.text()).append(quoteIdent).append(",")
+        })
+        /* removes last element of delimeter */
+        if (sb.length() > 0) {
+          sb.deleteCharAt(sb.length() - 1)
+        }
+        sb.append("\n")
+      })
+
+      utils.putS3Obj(outputBucket, outPutKey + "/" + date + "/" + "html-" + randomUUID().toString, IOUtils.toInputStream(sb.toString, "UTF-8"))
+      if (response.getEntity.getContent != null) response.getEntity.getContent.close
+      is.close()
+      httpClient.close()
     }
 
-    val is = response.getEntity.getContent
-    utils.putS3Obj(outputBucket, outPutKey + "/" + date + "/" + filename, is)
-    if (response.getEntity.getContent != null) response.getEntity.getContent.close
-    is.close()
-    httpClient.close()
   }
 
   def getAPIWithKeyRDD(endPoint: String): scala.collection.mutable.HashMap[Int, RDD[String]] = {
