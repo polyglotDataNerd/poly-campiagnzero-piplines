@@ -95,7 +95,7 @@ object OCREntry extends java.io.Serializable {
     if (runflag.toInt == 2) {
       googleparser.sheetsParse(sqlContext, sparkContext, args(1), args(2), sb)
     }
-    /* API */
+    /* API Call No Auth */
     if (runflag.toInt == 3) {
       new SparkUtils(sparkContext, sb).getAPIContent(args(1), args(2), args(3))
     }
