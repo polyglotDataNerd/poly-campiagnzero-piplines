@@ -180,18 +180,28 @@ class SparkUtils(sc: SparkContext, stringBuilder: java.lang.StringBuffer) extend
     val httpClient = HttpClientBuilder.create.build
     val get = new HttpGet(url)
     val response = httpClient.execute(get)
+    var filename: String = new String
 
     /* text/csv type */
-    if (response.containsHeader("Content-Disposition")) {
-      var filename: String = new String
-      response.getLastHeader("Content-Disposition").getElements.foreach(x => {
-        filename = x.getParameterByName("filename").getValue
+    if (response.getEntity.getContentType.getValue.contains("text/csv")) {
+
+      if (!response.getLastHeader("Content-Disposition").getName.isEmpty) {
+        filename = response.getLastHeader("Content-Disposition").getValue.split("=").last.replace("\"", "")
         val is = response.getEntity.getContent
         utils.putS3Obj(outputBucket, outPutKey + "/" + date + "/" + filename, is)
         if (response.getEntity.getContent != null) response.getEntity.getContent.close
         is.close()
         httpClient.close()
-      })
+      }
+      else {
+        filename = url.split("/").last.toLowerCase()
+        val is = response.getEntity.getContent
+        utils.putS3Obj(outputBucket, outPutKey + "/" + date + "/" + filename, is)
+        if (response.getEntity.getContent != null) response.getEntity.getContent.close
+        is.close()
+        httpClient.close()
+      }
+
     }
 
     /* html type */
@@ -218,6 +228,30 @@ class SparkUtils(sc: SparkContext, stringBuilder: java.lang.StringBuffer) extend
       if (response.getEntity.getContent != null) response.getEntity.getContent.close
       is.close()
       httpClient.close()
+    }
+
+    /* excel/office docs */
+    if (response.getEntity.getContentType.getValue.contains("officedocument")) {
+      response.getLastHeader("Content-Disposition").getElements.foreach(x => {
+        filename = x.getParameterByName("filename").getValue
+        val is = response.getEntity.getContent
+        utils.putS3Obj(outputBucket, outPutKey + "/" + date + "/" + filename, is)
+        if (response.getEntity.getContent != null) response.getEntity.getContent.close
+        is.close()
+        httpClient.close()
+      })
+    }
+
+    /* compressed files */
+    if (response.getEntity.getContentType.getValue.contains("application/binary")) {
+      response.getLastHeader("Content-Disposition").getElements.foreach(x => {
+        filename = x.getParameterByName("filename").getValue
+        val is = response.getEntity.getContent
+        utils.putS3Obj(outputBucket, outPutKey + "/" + date + "/" + filename, is)
+        if (response.getEntity.getContent != null) response.getEntity.getContent.close
+        is.close()
+        httpClient.close()
+      })
     }
 
   }
