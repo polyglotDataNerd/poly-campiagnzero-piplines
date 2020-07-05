@@ -185,7 +185,7 @@ class SparkUtils(sc: SparkContext, stringBuilder: java.lang.StringBuffer) extend
     /* text/csv type */
     if (response.getEntity.getContentType.getValue.contains("text/csv")) {
 
-      if (!response.getLastHeader("Content-Disposition").getName.isEmpty) {
+      if (response.containsHeader("Content-Disposition")) {
         filename = response.getLastHeader("Content-Disposition").getValue.split("=").last.replace("\"", "")
         val is = response.getEntity.getContent
         utils.putS3Obj(outputBucket, outPutKey + "/" + date + "/" + filename, is)
