@@ -40,7 +40,7 @@ class GoogleParser extends java.io.Serializable {
       ) {
         val df = sqlContext
           .read
-          .option("serviceAccountId", "")
+          .option("serviceAccountId", sparkUtils.getSSMParam("/s3/google/gcp/account"))
           .option("credentialPath", tmpP12.getAbsolutePath)
           .option("header", "false")
           .option("multiline", "true")
